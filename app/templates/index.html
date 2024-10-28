@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レシピ提案アプリ</title>
+</head>
+<body>
+    <div class="container">
+        <h1>レシピ提案アプリ</h1>
+        <form id="recipeForm" action="/get_recipe" method="post">
+            <label for="ingredients">食材を入力してください:</label>
+            <input type="text" id="ingredients" name="ingredients" value="{{ ingredients|default('', true) }}" required>
+
+            <label for="category">料理の種類を選択してください:</label>
+            <select id="category" name="category" required>
+                <option value="all" {% if category == 'all' %}selected{% endif %}>全て</option>
+                <option value="japanese" {% if category == 'japanese' %}selected{% endif %}>和食</option>
+                <option value="italian" {% if category == 'italian' %}selected{% endif %}>イタリアン</option>
+                <option value="chinese" {% if category == 'chinese' %}selected{% endif %}>中華</option>
+                <option value="korean" {% if category == 'korean' %}selected{% endif %}>韓国料理</option>
+                <option value="ethnic" {% if category == 'ethnic' %}selected{% endif %}>エスニック</option>
+                <option value="french" {% if category == 'french' %}selected{% endif %}>フレンチ</option>
+            </select>
+
+            <button type="submit">レシピを提案</button>
+        </form>
+
+        <div id="recipe-result">
+            {% if recipes %}
+                <h2>検索結果:</h2>
+                <ul>
+                    {% for recipe in recipes %}
+                        <li>
+                            <h3>{{ recipe.title }}</h3>
+                            <p>カテゴリー: {{ recipe.category }}</p>
+                            <p>材料: {{ recipe.ingredients }}</p>
+                            <a href="{{ recipe.recipe_url }}">レシピを見る</a>
+                            {% if recipe.image_url %}
+                                <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" />
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>レシピが見つかりませんでした。</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
