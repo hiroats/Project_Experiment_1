@@ -14,6 +14,17 @@ class Recipe(db.Model):
     ingredients = db.Column(db.Text)
     image_url = db.Column(db.Text)
 
+# データベースの初期化
+def initialize_database():
+    db_path = os.path.join(os.path.dirname(__file__), 'sample.db')
+    if not os.path.exists(db_path):
+        with app.app_context():
+            db.create_all()
+        print("データベースが初期化されました")
+
+# モデル定義の後で初期化関数を呼び出す
+initialize_database()
+
 @app.route('/')
 def index():
     # 最初のページ表示時には空のリストを渡す
@@ -59,13 +70,6 @@ def test_db_connection():
     recipes = Recipe.query.limit(5).all()
     return jsonify([recipe.title for recipe in recipes])
 
-# データベースの自動初期化
-def initialize_database():
-    db_path = os.path.join(os.path.dirname(__file__), 'sample.db')
-    if not os.path.exists(db_path):
-        db.create_all()
-        print("データベースが初期化されました")
-
+# アプリケーションの起動
 if __name__ == '__main__':
-    initialize_database()  # アプリ起動時に初期化を実行
     app.run()

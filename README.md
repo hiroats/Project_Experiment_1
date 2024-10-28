@@ -10,20 +10,38 @@
 
 ## セットアップ手順
 
-1. **リポジトリのクローン**
+# 1. リポジトリのクローン
+git clone https://github.com/hiroats/Project_Experiment_1.git
 
-   ```bash
-　　git clone https://github.com/yourusername/Project_Experiment_1.git
-   cd Project_Experiment_1
+# 2. プロジェクトのディレクトリに移動
+cd Project_Experiment_1
 
-2. **必要なパッケージのインストール**
-　　pip install -r requirements.txt
+# 3. 仮想環境の作成とアクティベート
 
-3. **プロジェクトのディレクトリに移動**
-    cd app
+# - Windowsの場合
+python -m venv venv
+venv\Scripts\activate
 
-4.  **アプリケーション起動**
-　　flask run
+# - macOS / Linuxの場合
+python3 -m venv venv
+source venv/bin/activate
 
+# 4. 必要なパッケージのインストール
+pip install -r requirements.txt
 
-　　
+# 5. flask のディレクトリに移動
+cd app
+
+# 6. `main.py` をエントリーポイントに指定　(今後変えるかも)
+
+# - Linux / Macの人
+export FLASK_APP=main.py
+
+# - Windowsの人
+set FLASK_APP=main.py
+
+# 7. アプリケーション起動
+flask run
+
+# 8. 仮想環境の終了（オプション）
+deactivate
