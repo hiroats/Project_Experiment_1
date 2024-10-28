@@ -13,10 +13,13 @@
 # 1. リポジトリのクローン
 git clone https://github.com/hiroats/Project_Experiment_1.git
 
+# 2. ブランチ変更
+git checkout <branch名>
+
 # 2. プロジェクトのディレクトリに移動
 cd Project_Experiment_1
 
-# 3. 仮想環境の作成とアクティベート
+# 3. 仮想環境の作成とアクティベート　(オプション(推奨))
 
 # - Windowsの場合
 python -m venv venv
