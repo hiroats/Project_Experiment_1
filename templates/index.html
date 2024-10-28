@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Suggestion App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>レシピ提案アプリ</h1>
+        <form id="recipeForm">
+            <label for="ingredients">食材を入力してください:</label>
+            <input type="text" id="ingredients" name="ingredients" required>
+
+            <label for="cuisine">料理の種類を選択してください:</label>
+            <select id="cuisine" name="cuisine" required>
+                <option value="Japanese">和食</option>
+                <option value="Western">洋食</option>
+                <option value="Chinese">中華</option>
+                <option value="Indian">インド料理</option>
+                <option value="Mexican">メキシコ料理</option>
+            </select>
+
+            <button type="button" onclick="generateRecipe()">レシピを提案</button>
+        </form>
+
+        <div id="recipe-result">
+            <!-- レシピの結果がここに表示されます -->
+        </div>
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>

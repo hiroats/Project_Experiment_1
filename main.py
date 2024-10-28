@@ -1,8 +1,8 @@
-from test import app
+from project import app  #projectの部分
 from flask import render_template
 
 @app.route('/')
 def index():
     return render_template(
-        'sample.html'
+        'index.html'
     )
