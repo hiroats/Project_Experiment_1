@@ -1,16 +1,17 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-import os
+from config import Config
 
-app = Flask(__name__)
+db = SQLAlchemy()
 
-# ベースディレクトリの取得
-basedir = os.path.abspath(os.path.dirname(__file__))
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
 
-# データベースのパスを設定（プロジェクトディレクトリ内の sample.db を使用）
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'sample.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
 
-db = SQLAlchemy(app)
+    # ブループリントの登録
+    from app.routes import bp as main_bp
+    app.register_blueprint(main_bp)
 
-from . import app
+    return app

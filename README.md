@@ -23,25 +23,23 @@ python -m venv venv
 venv\Scripts\activate
 
 # - macOS / Linuxの場合
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 
 # 4. 必要なパッケージのインストール
 pip install -r requirements.txt
 
-# 5. flask のディレクトリに移動
-cd app
 
-# 6. `main.py` をエントリーポイントに指定　(今後変えるかも)
+# 5. `run.py` をエントリーポイントに指定　(今後変えるかも)
 
 # - Linux / Macの人
-export FLASK_APP=main.py
+export FLASK_APP=run.py
 
 # - Windowsの人
-set FLASK_APP=main.py
+set FLASK_APP=run.py
 
-# 7. アプリケーション起動
+# 6. アプリケーション起動
 flask run
 
-# 8. 仮想環境の終了（オプション）
+# 7. 仮想環境の終了（オプション）
 deactivate
