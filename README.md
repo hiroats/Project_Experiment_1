@@ -10,32 +10,32 @@
 
 ## セットアップ手順
 
-# 1. リポジトリのクローン
+# 1. リポジトリのクローン (初回のみ)
 
 git clone https://github.com/hiroats/Project_Experiment_1.git
 
-# 2. ブランチ変更
+# 2. プロジェクトのディレクトリに移動
+
+cd Project_Experiment_1
+
+# 3. ブランチ変更
 git fetch origin <branch名>  #ブランチを最新情報に更新
 
 git checkout <branch名>
 
-# 3. プロジェクトのディレクトリに移動
-
-cd Project_Experiment_1
-
-# 4. 仮想環境の作成とアクティベート　(オプション(推奨))
+# 4. 仮想環境の作成とアクティベート　(省略可)
 
 # - Windowsの場合
 
-python -m venv venv
+python -m venv (任意環境名)
 
-venv\Scripts\activate
+(任意環境名)\Scripts\activate
 
 # - macOS / Linuxの場合
 
-python -m venv venv
+python -m venv (任意環境名)
 
-source venv/bin/activate
+source (任意環境名)/bin/activate
 
 # 4. 必要なパッケージのインストール
 
