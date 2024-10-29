@@ -14,6 +14,7 @@
 git clone https://github.com/hiroats/Project_Experiment_1.git
 
 # 2. ブランチ変更
+git fetch origin <branch名>  #ブランチを最新情報に更新
 git checkout <branch名>
 
 # 2. プロジェクトのディレクトリに移動
@@ -39,7 +40,7 @@ pip install -r requirements.txt
 export FLASK_APP=run.py
 
 # - Windowsの人
-set FLASK_APP=run.py
+set FLASK_APP="run.py"
 
 # 6. アプリケーション起動
 flask run
