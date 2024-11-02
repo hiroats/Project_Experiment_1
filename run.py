@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Recipe
+from app.models import Recipe, User
 
 app = create_app()
 
