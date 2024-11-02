@@ -1,0 +1,16 @@
+# .gitignore
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Database files
+#*.db
+*.sqlite3
+
+# Environment variables
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
