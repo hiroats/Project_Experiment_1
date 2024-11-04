@@ -21,9 +21,11 @@ cd Project_Experiment_1
 # 3. ブランチ変更
 git fetch origin <branch名>  #ブランチを最新情報に更新
 
+git checkout <branch名> #ブランチ変更
+
 git pull origin <branch名>　#ブランチの最新情報をローカル環境に反映
 
-git checkout <branch名> #ブランチ変更
+
 
 # 4. 仮想環境の作成とアクティベート　(省略可)
 
