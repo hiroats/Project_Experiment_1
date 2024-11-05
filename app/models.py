@@ -9,6 +9,7 @@ class Recipe(db.Model):
     title = db.Column(db.Text)
     recipe_url = db.Column(db.Text)
     ingredients = db.Column(db.Text)
+    ingredients_hiragana = db.Column(db.Text) 
     image_url = db.Column(db.Text)
 
 class User(db.Model):
