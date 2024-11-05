@@ -2,6 +2,7 @@ from flask import render_template, jsonify, request, Blueprint, redirect, url_fo
 from app import db
 from app.models import Recipe, User
 from sqlalchemy import or_
+import jaconv
 
 bp = Blueprint('main', __name__)
 
@@ -13,14 +14,15 @@ def index():
         return redirect(url_for('main.login'))
 
 @bp.route('/get_recipe', methods=['POST'])
-def get_recipe():
-    ingredients = request.form.get('ingredients', '')
-    category = request.form.get('category', 'all')
 
+def get_recipe():
+    ingredients_input = request.form.get('ingredients', '')
+    category = request.form.get('category', 'all')
+    ingredients = jaconv.kata2hira(ingredients_input)
     # クエリのフィルタリング: 類似食材とカテゴリ一致
     query = Recipe.query
     if ingredients:
-        ingredient_filters = [Recipe.ingredients.contains(ingredient) for ingredient in ingredients.split()]
+        ingredient_filters = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
         query = query.filter(or_(*ingredient_filters))
 
     # カテゴリが「全て」以外の場合のみカテゴリフィルタを適用
@@ -28,7 +30,9 @@ def get_recipe():
         query = query.filter(Recipe.category == category.lower())
 
     recipes = query.all()
-    return render_template('index.html', recipes=recipes, ingredients=ingredients, category=category)
+    return render_template('index.html', recipes=recipes, ingredients=ingredients_input, category=category)
+
+
 
 # レシピ一覧を取得するエンドポイント
 @bp.route('/recipes', methods=['GET'])
