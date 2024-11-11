@@ -30,7 +30,7 @@ def get_recipe():
         query = query.filter(Recipe.category == category.lower())
 
     recipes = query.all()
-    return render_template('index.html', recipes=recipes, ingredients=ingredients_input, category=category)
+    return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category) #一度に表示する数を制限
 
 
 
@@ -95,3 +95,29 @@ def signup():
 def test_db_connection():
     recipes = Recipe.query.limit(5).all()
     return jsonify([recipe.title for recipe in recipes])
+
+@bp.route('/upload')
+def upload():
+    return render_template('upload.html')
+
+@bp.route('/upload-recipe', methods=['POST'])
+def upload_recipe():
+    title = request.form['title']
+    category = request.form['category']
+    ingredients = request.form['ingredients']
+    recipe_url = request.form.get('recipe_url', '')
+    ingredients_hiragana = jaconv.kata2hira(ingredients)
+    print("upload recipe")
+    # 新しいレシピをデータベースに追加
+    new_recipe = Recipe(
+        title=title,
+        category=category.lower(),
+        ingredients=ingredients,
+        ingredients_hiragana = ingredients_hiragana,
+        recipe_url=recipe_url,
+        image_url=None
+    )
+    db.session.add(new_recipe)
+    db.session.commit()
+
+    return redirect(url_for('main.index'))
