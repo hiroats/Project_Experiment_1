@@ -3,3 +3,8 @@
 Flask>=2.0
 Flask-SQLAlchemy>=2.5
 jaconv
+torch>=1.9
+unidic-lite
+mecab-python3
+numpy
+pandas

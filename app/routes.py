@@ -1,8 +1,10 @@
-from flask import render_template, jsonify, request, Blueprint, redirect, url_for, session
+from flask import render_template, jsonify, request, Blueprint, redirect, url_for, session, send_file
 from app import db
 from app.models import Recipe, User
+from app.ml.mlp_dep import recommend_category
 from sqlalchemy import or_
 import jaconv
+
 
 bp = Blueprint('main', __name__)
 
@@ -121,3 +123,39 @@ def upload_recipe():
     db.session.commit()
 
     return redirect(url_for('main.index'))
+
+@bp.route('/predict_category', methods=['POST'])
+def predict_category():
+    data = request.get_json()
+    ingredients_input = data.get('ingredients', '')
+    
+    if not ingredients_input:
+        return jsonify({"error": "食材が入力されていません"}), 400
+    
+    # カテゴリ予測の実行
+    category_predictions = recommend_category(ingredients_input)
+
+    # デバッグ用ログ
+    print("category_predictions:", category_predictions)
+
+    if category_predictions is None:
+        return jsonify({"error": "予測結果が無効です"}), 400
+    
+    # 英語のカテゴリ名を日本語に変換
+    category_translation = {
+        'chinese': '中華',
+        'ethnic': 'エスニック（中南米料理）',
+        'french': 'フランス料理',
+        'italian': 'イタリアン',
+        'japanese': '日本食',
+        'korean': '韓国料理'
+    }
+    
+    # NumPyのデータ型をPythonの標準型に変換し、カテゴリ名を日本語に変換
+    category_predictions = {
+        category_translation.get(str(key), str(key)): round(float(value), 2) 
+        for key, value in category_predictions.items()
+    }
+
+    # 予測結果を返す
+    return jsonify(category_predictions)
