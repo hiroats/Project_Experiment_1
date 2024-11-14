@@ -8,3 +8,4 @@ unidic-lite
 mecab-python3
 numpy
 pandas
+scikit-learn
