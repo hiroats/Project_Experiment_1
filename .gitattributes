@@ -1,3 +1,0 @@
-app/ml/best_mlp_model.pth filter=lfs diff=lfs merge=lfs -text
-app/ml/dictionary/unidic_lite/* !text !filter !merge !diff
-app/ml/best_mlp_model.pth !text !filter !merge !diff
