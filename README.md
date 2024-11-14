@@ -36,7 +36,7 @@ git lfs install  #プロジェクトのディレクトリで行う
 
 git lfs pull　#LFSファイルを明示的にダウンロード(省略可能な場合在り)
 
-# 4. 仮想環境の作成とアクティベート　(省略可)
+# 5. 仮想環境の作成とアクティベート　(省略可)
 
 # - Windowsの場合
 
@@ -50,12 +50,12 @@ python -m venv (任意環境名)
 
 source (任意環境名)/bin/activate
 
-# 4. 必要なパッケージのインストール
+# 6. 必要なパッケージのインストール
 
 pip install -r requirements.txt
 
 
-# 5. `run.py` をエントリーポイントに指定　(今後変えるかも)
+# 7. `run.py` をエントリーポイントに指定　(今後変えるかも)
 
 # - Linux / Macの人
 
@@ -65,10 +65,10 @@ export FLASK_APP=run.py
 
 set FLASK_APP="run.py"
 
-# 6. アプリケーション起動
+# 8. アプリケーション起動
 
 flask run
 
-# 7. 仮想環境の終了（オプション）
+# 9. 仮想環境の終了（オプション）
 
 deactivate
