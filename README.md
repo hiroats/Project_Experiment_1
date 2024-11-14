@@ -26,6 +26,15 @@ git checkout <branch名> #ブランチ変更
 git pull origin <branch名>　#ブランチの最新情報をローカル環境に反映
 
 
+# 4. Git LFSのインストール(初回のみ)
+Windowsの場合 : Git LFSのインストーラーからダウンロードし、インストール
+
+Linuxの場合 : sudo apt install git-lfs
+
+# - Git LFSの初期化 (初回のみ)
+git lfs install  #プロジェクトのディレクトリで行う
+
+git lfs pull　#LFSファイルを明示的にダウンロード(省略可能な場合在り)
 
 # 4. 仮想環境の作成とアクティベート　(省略可)
 
