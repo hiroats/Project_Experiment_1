@@ -1,10 +1,9 @@
-from flask import render_template, jsonify, request, Blueprint, redirect, url_for, session, send_file
+from flask import render_template, jsonify, request, Blueprint, redirect, url_for, session
 from app import db
 from app.models import Recipe, User
 from app.ml.mlp_dep import recommend_category
 from sqlalchemy import or_
 import jaconv
-
 
 bp = Blueprint('main', __name__)
 
@@ -16,27 +15,19 @@ def index():
         return redirect(url_for('main.login'))
 
 @bp.route('/get_recipe', methods=['POST'])
-
 def get_recipe():
     ingredients_input = request.form.get('ingredients', '')
     category = request.form.get('category', 'all')
     ingredients = jaconv.kata2hira(ingredients_input)
-    # クエリのフィルタリング: 類似食材とカテゴリ一致
     query = Recipe.query
     if ingredients:
         ingredient_filters = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
         query = query.filter(or_(*ingredient_filters))
-
-    # カテゴリが「全て」以外の場合のみカテゴリフィルタを適用
     if category and category.lower() != "all":
         query = query.filter(Recipe.category == category.lower())
-
     recipes = query.all()
-    return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category) #一度に表示する数を制限
+    return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category)
 
-
-
-# レシピ一覧を取得するエンドポイント
 @bp.route('/recipes', methods=['GET'])
 def get_recipes():
     recipes = Recipe.query.all()
@@ -58,15 +49,12 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
         user = User.query.filter_by(username=username).first()
-        
         if user and user.password == password:
             session['user_id'] = user.id
             return redirect(url_for('main.index'))
         else:
             return "ユーザー名またはパスワードが間違っています。"
-    
     return render_template('login.html')
 
 @bp.route('/logout')
@@ -79,18 +67,13 @@ def signup():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         print(f"Attempting to sign up user: {username}")
-        
         if User.query.filter_by(username=username).first() is not None:
             return "そのユーザー名はすでに使用されています。"
-        
         new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
-        
         return redirect(url_for('main.login'))
-    
     return render_template('signup.html')
 
 @bp.route('/test_db_connection')
@@ -110,38 +93,28 @@ def upload_recipe():
     recipe_url = request.form.get('recipe_url', '')
     ingredients_hiragana = jaconv.kata2hira(ingredients)
     print("upload recipe")
-    # 新しいレシピをデータベースに追加
     new_recipe = Recipe(
         title=title,
         category=category.lower(),
         ingredients=ingredients,
-        ingredients_hiragana = ingredients_hiragana,
+        ingredients_hiragana=ingredients_hiragana,
         recipe_url=recipe_url,
         image_url=None
     )
     db.session.add(new_recipe)
     db.session.commit()
-
     return redirect(url_for('main.index'))
 
 @bp.route('/predict_category', methods=['POST'])
 def predict_category():
     data = request.get_json()
     ingredients_input = data.get('ingredients', '')
-    
     if not ingredients_input:
         return jsonify({"error": "食材が入力されていません"}), 400
-    
-    # カテゴリ予測の実行
     category_predictions = recommend_category(ingredients_input)
-
-    # デバッグ用ログ
     print("category_predictions:", category_predictions)
-
     if category_predictions is None:
         return jsonify({"error": "予測結果が無効です"}), 400
-    
-    # 英語のカテゴリ名を日本語に変換
     category_translation = {
         'chinese': '中華',
         'ethnic': 'エスニック（中南米料理）',
@@ -150,12 +123,8 @@ def predict_category():
         'japanese': '日本食',
         'korean': '韓国料理'
     }
-    
-    # NumPyのデータ型をPythonの標準型に変換し、カテゴリ名を日本語に変換
     category_predictions = {
         category_translation.get(str(key), str(key)): round(float(value), 2) 
         for key, value in category_predictions.items()
     }
-
-    # 予測結果を返す
     return jsonify(category_predictions)

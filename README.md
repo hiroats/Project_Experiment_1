@@ -26,6 +26,7 @@ git checkout <branch名> #ブランチ変更
 git pull origin <branch名>　#ブランチの最新情報をローカル環境に反映
 
 
+<<<<<<< HEAD
 # 4. Git LFSのインストール(初回のみ)
 Windowsの場合 : Git LFSのインストーラーからダウンロードし、インストール
 
@@ -37,6 +38,10 @@ git lfs install  #プロジェクトのディレクトリで行う
 git lfs pull　#LFSファイルを明示的にダウンロード(省略可能な場合在り)
 
 # 5. 仮想環境の作成とアクティベート　(省略可)
+=======
+
+# 4. 仮想環境の作成とアクティベート　(省略可)
+>>>>>>> e8c07686b41b46971faf8f4c5edb9d78500e6191
 
 # - Windowsの場合
 
@@ -50,12 +55,20 @@ python -m venv (任意環境名)
 
 source (任意環境名)/bin/activate
 
+<<<<<<< HEAD
 # 6. 必要なパッケージのインストール
+=======
+# 4. 必要なパッケージのインストール
+>>>>>>> e8c07686b41b46971faf8f4c5edb9d78500e6191
 
 pip install -r requirements.txt
 
 
+<<<<<<< HEAD
 # 7. `run.py` をエントリーポイントに指定　(今後変えるかも)
+=======
+# 5. `run.py` をエントリーポイントに指定　(今後変えるかも)
+>>>>>>> e8c07686b41b46971faf8f4c5edb9d78500e6191
 
 # - Linux / Macの人
 
@@ -65,10 +78,18 @@ export FLASK_APP=run.py
 
 set FLASK_APP="run.py"
 
+<<<<<<< HEAD
 # 8. アプリケーション起動
 
 flask run
 
 # 9. 仮想環境の終了（オプション）
+=======
+# 6. アプリケーション起動
+
+flask run
+
+# 7. 仮想環境の終了（オプション）
+>>>>>>> e8c07686b41b46971faf8f4c5edb9d78500e6191
 
 deactivate

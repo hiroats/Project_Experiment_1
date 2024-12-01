@@ -3,9 +3,12 @@
 Flask>=2.0
 Flask-SQLAlchemy>=2.5
 jaconv
+<<<<<<< HEAD
 torch>=1.9
 unidic-lite
 mecab-python3
 numpy
 pandas
 scikit-learn
+=======
+>>>>>>> e8c07686b41b46971faf8f4c5edb9d78500e6191

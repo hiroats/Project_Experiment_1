@@ -52,45 +52,41 @@
     </div>
     <a href="/logout">ログアウト</a>
     <a href="/upload">レシピ追加</a>
+
+    <script>
+        function predictCategory() {
+            const ingredients = document.getElementById('ingredients').value;
+
+            fetch('/predict_category', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ingredients: ingredients })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let output = "<h2>おすすめのカテゴリ</h2><ul>";
+
+                // データが正しいかどうかを確認
+                if (data && data.error) {
+                    output += `<li>エラー: ${data.error}</li>`;
+                } else if (data && typeof data === 'object') {
+                    // 正常なデータの場合、カテゴリと確率を表示
+                    for (const [category, prob] of Object.entries(data)) {
+                        if (typeof prob === 'number') {
+                            output += `<li>${category}: ${prob.toFixed(2)}%</li>`;
+                        } else {
+                            output += `<li>${category}: 無効な確率</li>`;
+                        }
+                    }
+                } else {
+                    output += "<li>予測結果が無効です。</li>";
+                }
+
+                output += "</ul>";
+                document.getElementById('category_prediction').innerHTML = output;
+            })
+            .catch(error => console.error("エラー:", error));
+        }
+    </script>
 </body>
 </html>
-
-
-<script>
-    function predictCategory() {
-    const ingredients = document.getElementById('ingredients').value;
-
-    fetch('/predict_category', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients: ingredients })
-    })
-    .then(response => response.json())
-    .then(data => {
-        let output = "<h2>おすすめのカテゴリ</h2><ul>";
-
-        // dataが正しいかどうかを確認
-        if (data && data.error) {
-            output += `<li>エラー: ${data.error}</li>`;
-        } else if (data && typeof data === 'object') {
-            // 正しい場合、カテゴリと確率を表示
-            for (const [category, prob] of Object.entries(data)) {
-                if (typeof prob === 'number') {
-                    output += `<li>${category}: ${prob.toFixed(2)}%</li>`;
-                } else {
-                    output += `<li>${category}: 無効な確率</li>`;
-                }
-            }
-        } else {
-            output += "<li>予測結果が無効です。</li>";
-        }
-
-        output += "</ul>";
-        document.getElementById('category_prediction').innerHTML = output;
-    })
-    .catch(error => console.error("エラー:", error));
-}
-
-
-
-</script>
