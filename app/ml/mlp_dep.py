@@ -10,7 +10,8 @@ import unidic_lite
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 辞書パスをプロジェクト内の辞書ディレクトリに設定
-mecab_dict_path = unidic_lite.DICDIR
+# mecab_dict_path = unidic_lite.DICDIR
+mecab_dict_path = unidic_lite.DICDIR.replace("\\", "/")
 
 # 保存したベクトライザ、ラベルエンコーダ、モデルの読み込み
 with open(os.path.join(base_dir, 'mlp_vectorizer.pkl'), 'rb') as f:
