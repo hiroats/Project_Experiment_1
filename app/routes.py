@@ -22,7 +22,12 @@ def get_recipe():
     query = Recipe.query
     if ingredients:
         ingredient_filters = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
-        query = query.filter(or_(*ingredient_filters))
+        # and検索
+        for filter_condition in ingredient_filters:
+            query = query.filter(filter_condition)
+        # or検索
+        # query = query.filter(or_(*ingredient_filters))
+
     if category and category.lower() != "all":
         query = query.filter(Recipe.category == category.lower())
     recipes = query.all()
