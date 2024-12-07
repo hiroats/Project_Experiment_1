@@ -1,6 +1,12 @@
 from flask import Flask, render_template, request
+import os
 
 app = Flask(__name__)
+
+# アップロードされたファイルを保存するディレクトリ
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/uploads')
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
 
 @app.route('/')
 def index():

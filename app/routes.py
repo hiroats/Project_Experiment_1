@@ -1,9 +1,12 @@
 from flask import render_template, jsonify, request, Blueprint, redirect, url_for, session
 from app import db
-from app.models import Recipe, User
+from app.models import AddRecipe, Recipe, User
 from app.ml.mlp_dep import recommend_category
 from sqlalchemy import or_
 import jaconv
+from werkzeug.utils import secure_filename
+import os
+from flask import current_app
 
 bp = Blueprint('main', __name__)
 
@@ -18,13 +21,55 @@ def index():
 def get_recipe():
     ingredients_input = request.form.get('ingredients', '')
     category = request.form.get('category', 'all')
+
+    # 食材をひらがなに変換
     ingredients = jaconv.kata2hira(ingredients_input)
-    query = Recipe.query
+
+    # Recipe からデータを取得
+    query_recipe = Recipe.query
     if ingredients:
-        ingredient_filters = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
+        ingredient_filters_recipe = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
+        query_recipe = query_recipe.filter(or_(*ingredient_filters_recipe))
+    if category and category.lower() != "all":
+        query_recipe = query_recipe.filter(Recipe.category == category.lower())
+    recipes = query_recipe.all()
+
+    # AddRecipe からデータを取得
+    query_addrecipe = AddRecipe.query
+    if ingredients:
+        ingredient_filters_addrecipe = [AddRecipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
+        query_addrecipe = query_addrecipe.filter(or_(*ingredient_filters_addrecipe))
+    if category and category.lower() != "all":
+        query_addrecipe = query_addrecipe.filter(AddRecipe.category == category.lower())
+    add_recipes = query_addrecipe.all()
+
+    # 結果をリストにまとめ、データの種類をフラグで追加
+    combined_recipes = [
+        {"type": "addrecipe", "data": add_recipe} for add_recipe in add_recipes
+    ] + [
+        {"type": "recipe", "data": recipe} for recipe in recipes
+    ]
+
+    return render_template(
+        'index.html',
+        recipes=combined_recipes[:10],  # 表示件数を制限
+        ingredients=ingredients_input,
+        category=category
+    )
+
+
+
+@bp.route('/get_addRecipe', methods=['POST'])
+def get_addRecipe():
+    ingredients_input = request.form.get('ingredients', '')
+    category = request.form.get('category', 'all')
+    ingredients = jaconv.kata2hira(ingredients_input)
+    query = AddRecipe.query
+    if ingredients:
+        ingredient_filters = [AddRecipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
         query = query.filter(or_(*ingredient_filters))
     if category and category.lower() != "all":
-        query = query.filter(Recipe.category == category.lower())
+        query = query.filter(AddRecipe.category == category.lower())
     recipes = query.all()
     return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category)
 
@@ -39,6 +84,24 @@ def get_recipes():
             "recipe_url": recipe.recipe_url,
             "ingredients": recipe.ingredients,
             "image_url": recipe.image_url
+        }
+        for recipe in recipes
+    ]
+    return jsonify(recipes_list)
+
+@bp.route('/addRecipes', methods=['GET'])
+def get_addRecipes():
+    recipes = AddRecipe.query.all()
+    recipes_list = [
+        {
+            "id": recipe.id,
+            "title": recipe.title,
+            "category": recipe.category,
+            "ingredients": recipe.ingredients,
+            "procedure": recipe.procedure,
+            "image": recipe.image,
+            "created_by": recipe.created_by,
+            "is_public": recipe.created_by
         }
         for recipe in recipes
     ]
@@ -90,20 +153,42 @@ def upload_recipe():
     title = request.form['title']
     category = request.form['category']
     ingredients = request.form['ingredients']
-    recipe_url = request.form.get('recipe_url', '')
     ingredients_hiragana = jaconv.kata2hira(ingredients)
-    print("upload recipe")
-    new_recipe = Recipe(
+    recipe = request.form['recipe']
+    image_file = request.files['image']
+    created_by = session.get('user_id', '匿名ユーザー')
+    is_public = request.form.get('is_public', 'true')
+    
+    if image_file and image_file.filename:
+        # ファイル名を安全にする
+        filename = secure_filename(image_file.filename)
+        # 保存先のパスを定義（UPLOAD_FOLDERはアプリの設定で指定）
+        save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+        print(f"Saving file to: {save_path}")
+        # ファイルを保存
+        image_file.save(save_path)
+
+        # 画像のパスをデータベースに保存する
+        image_path = os.path.join('uploads', filename)  # 'uploads'はアプリの静的ファイルとして設定されているディレクトリ
+        image_path = image_path.replace('\\', '/')
+    else:
+        image_path = None
+        
+    new_recipe = AddRecipe(
         title=title,
         category=category.lower(),
         ingredients=ingredients,
         ingredients_hiragana=ingredients_hiragana,
-        recipe_url=recipe_url,
-        image_url=None
+        recipe=recipe,
+        image=image_path,  # データベースに画像のパスを保存
+        created_by=created_by,
+        is_public=is_public
     )
+    
     db.session.add(new_recipe)
     db.session.commit()
     return redirect(url_for('main.index'))
+
 
 @bp.route('/predict_category', methods=['POST'])
 def predict_category():
