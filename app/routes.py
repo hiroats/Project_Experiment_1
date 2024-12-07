@@ -4,6 +4,7 @@ from app.models import Recipe, User
 from app.ml.mlp_dep import recommend_category
 from sqlalchemy import or_
 import jaconv
+import MeCab
 
 bp = Blueprint('main', __name__)
 
@@ -31,6 +32,28 @@ def get_recipe():
     if category and category.lower() != "all":
         query = query.filter(Recipe.category == category.lower())
     recipes = query.all()
+    # レシピの数が少ない場合、MeCabで名詞を抽出して再検索
+    if len(recipes) < 3 and ingredients:
+        # MeCabで名詞を抽出
+        tagger = MeCab.Tagger('-Owakati')
+        parsed = tagger.parse(ingredients)
+        nouns = []
+        for line in parsed.splitlines():
+            if line == 'EOS':
+                break
+            parts = line.split('\t')
+            if len(parts) > 3 and '名詞' in parts[3]:
+                nouns.append(parts[0])
+        # 名詞で再検索
+        if nouns:
+            query = Recipe.query
+            noun_filters = [Recipe.ingredients_hiragana.contains(noun) for noun in nouns]
+            for filter_condition in noun_filters:
+                query = query.filter(filter_condition)
+            if category and category.lower() != "all":
+                query = query.filter(Recipe.category == category.lower())
+            recipes = query.all()
+    
     return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category)
 
 @bp.route('/recipes', methods=['GET'])
