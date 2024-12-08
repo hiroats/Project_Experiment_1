@@ -54,8 +54,6 @@ source (任意環境名)/bin/activate
 
 pip install -r requirements.txt
 
-
-
 # 7. `run.py` をエントリーポイントに指定　(今後変えるかも)
 
 # - Linux / Macの人
