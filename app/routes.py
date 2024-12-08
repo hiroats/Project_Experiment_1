@@ -7,6 +7,7 @@ import jaconv
 from werkzeug.utils import secure_filename
 import os
 from flask import current_app
+import MeCab
 
 bp = Blueprint('main', __name__)
 
@@ -66,11 +67,38 @@ def get_addRecipe():
     ingredients = jaconv.kata2hira(ingredients_input)
     query = AddRecipe.query
     if ingredients:
-        ingredient_filters = [AddRecipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
-        query = query.filter(or_(*ingredient_filters))
+        ingredient_filters = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
+        # and検索
+        for filter_condition in ingredient_filters:
+            query = query.filter(filter_condition)
+        # or検索
+        # query = query.filter(or_(*ingredient_filters))
+
     if category and category.lower() != "all":
         query = query.filter(AddRecipe.category == category.lower())
     recipes = query.all()
+    # レシピの数が少ない場合、MeCabで名詞を抽出して再検索
+    if len(recipes) < 3 and ingredients:
+        # MeCabで名詞を抽出
+        tagger = MeCab.Tagger('-Owakati')
+        parsed = tagger.parse(ingredients)
+        nouns = []
+        for line in parsed.splitlines():
+            if line == 'EOS':
+                break
+            parts = line.split('\t')
+            if len(parts) > 3 and '名詞' in parts[3]:
+                nouns.append(parts[0])
+        # 名詞で再検索
+        if nouns:
+            query = Recipe.query
+            noun_filters = [Recipe.ingredients_hiragana.contains(noun) for noun in nouns]
+            for filter_condition in noun_filters:
+                query = query.filter(filter_condition)
+            if category and category.lower() != "all":
+                query = query.filter(Recipe.category == category.lower())
+            recipes = query.all()
+    
     return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category)
 
 @bp.route('/recipes', methods=['GET'])
