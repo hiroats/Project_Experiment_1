@@ -26,23 +26,24 @@ def get_recipe():
     # 食材をひらがなに変換
     ingredients = jaconv.kata2hira(ingredients_input)
 
-    # Recipe からデータを取得
+    # Recipe からデータを取得（最大10件）
     query_recipe = Recipe.query
     if ingredients:
         ingredient_filters_recipe = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
         query_recipe = query_recipe.filter(or_(*ingredient_filters_recipe))
     if category and category.lower() != "all":
         query_recipe = query_recipe.filter(Recipe.category == category.lower())
-    recipes = query_recipe.all()
+    recipes = query_recipe.limit(10).all()
 
-    # AddRecipe からデータを取得
+    # AddRecipe からデータを取得（最大10件）
     query_addrecipe = AddRecipe.query
     if ingredients:
         ingredient_filters_addrecipe = [AddRecipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
         query_addrecipe = query_addrecipe.filter(or_(*ingredient_filters_addrecipe))
     if category and category.lower() != "all":
         query_addrecipe = query_addrecipe.filter(AddRecipe.category == category.lower())
-    add_recipes = query_addrecipe.all()
+    add_recipes = query_addrecipe.limit(10).all()
+
 
     # 結果をリストにまとめ、データの種類をフラグで追加
     combined_recipes = [
@@ -53,7 +54,7 @@ def get_recipe():
 
     return render_template(
         'index.html',
-        recipes=combined_recipes[:10],  # 表示件数を制限
+        recipes=combined_recipes,
         ingredients=ingredients_input,
         category=category
     )
