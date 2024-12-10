@@ -26,39 +26,100 @@ def get_recipe():
     # 食材をひらがなに変換
     ingredients = jaconv.kata2hira(ingredients_input)
 
-    # Recipe からデータを取得（最大10件）
+    # Recipeテーブル検索(AND検索)
     query_recipe = Recipe.query
     if ingredients:
-        ingredient_filters_recipe = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
-        query_recipe = query_recipe.filter(or_(*ingredient_filters_recipe))
+        for ingredient in ingredients.split():
+            query_recipe = query_recipe.filter(Recipe.ingredients_hiragana.contains(ingredient))
     if category and category.lower() != "all":
         query_recipe = query_recipe.filter(Recipe.category == category.lower())
     recipes = query_recipe.limit(10).all()
 
-    # AddRecipe からデータを取得（最大10件）
+    # AddRecipeテーブル検索(AND検索)
     query_addrecipe = AddRecipe.query
     if ingredients:
-        ingredient_filters_addrecipe = [AddRecipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
-        query_addrecipe = query_addrecipe.filter(or_(*ingredient_filters_addrecipe))
+        for ingredient in ingredients.split():
+            query_addrecipe = query_addrecipe.filter(AddRecipe.ingredients_hiragana.contains(ingredient))
     if category and category.lower() != "all":
         query_addrecipe = query_addrecipe.filter(AddRecipe.category == category.lower())
     add_recipes = query_addrecipe.limit(10).all()
 
-
-    # 結果をリストにまとめ、データの種類をフラグで追加
-    combined_recipes = [
-        {"type": "addrecipe", "data": add_recipe} for add_recipe in add_recipes
+    combined = [
+        {"type": "addrecipe", "data": r} for r in add_recipes
     ] + [
-        {"type": "recipe", "data": recipe} for recipe in recipes
+        {"type": "recipe", "data": r} for r in recipes
     ]
 
-    return render_template(
-        'index.html',
-        recipes=combined_recipes,
-        ingredients=ingredients_input,
-        category=category
-    )
+    # 検索結果が3件未満の場合、MeCabで名詞を抽出し、段階的採用ロジック実行
+    if len(combined) < 3 and ingredients:
+        
+        tagger = MeCab.Tagger()
+        node = tagger.parseToNode(ingredients)
+        nouns = []
+        while node:
+            features = node.feature.split(',')
+            # features[0]が品詞、'名詞'かどうかをチェック
+            if features[0] == '名詞':
+                nouns.append(node.surface)
+            node = node.next
 
+        if nouns:
+            # nounsのOR検索をRecipeとAddRecipe双方で行う
+            or_conditions_recipe = [Recipe.ingredients_hiragana.contains(n) for n in nouns]
+            or_conditions_addrecipe = [AddRecipe.ingredients_hiragana.contains(n) for n in nouns]
+
+            or_query_recipe = Recipe.query.filter(or_(*or_conditions_recipe))
+            or_query_addrecipe = AddRecipe.query.filter(or_(*or_conditions_addrecipe))
+
+            if category and category.lower() != "all":
+                or_query_recipe = or_query_recipe.filter(Recipe.category == category.lower())
+                or_query_addrecipe = or_query_addrecipe.filter(AddRecipe.category == category.lower())
+
+            candidate_recipes = or_query_recipe.all()
+            candidate_addrecipes = or_query_addrecipe.all()
+
+            # レシピごとにnouns中何単語一致するかカウント
+            ranked_results = []
+            for r in candidate_recipes:
+                count = sum(n in r.ingredients_hiragana for n in nouns)
+                ranked_results.append((count, "recipe", r))
+            for r in candidate_addrecipes:
+                count = sum(n in r.ingredients_hiragana for n in nouns)
+                ranked_results.append((count, "addrecipe", r))
+
+            # 一致数で降順ソート
+            ranked_results.sort(key=lambda x: x[0], reverse=True)
+
+            # 全部一致から順に採用
+            # 段階的に落としていくロジック
+            def filter_by_match_count(results, nouns_count):
+                # nouns_countから0まで減らしながら、3件以上になったら返す
+                filtered = []
+                for c in range(nouns_count, 0, -1):
+                    matched = [r for (co, t, r) in results if co == c]
+                    filtered += matched
+                    if len(filtered) >= 3:
+                        return filtered
+                # 最後は1以上一致するもの全部
+                if not filtered:
+                    filtered = [r for (co, t, r) in results if co > 0]
+                return filtered
+
+            chosen = filter_by_match_count(ranked_results, len(nouns))
+
+
+            # chosenにはtypeないので元のresultsから照合
+            final_combined = []
+            for r in chosen[:5]:  # 5件まで表示
+                # typeを取得するためにranked_resultsを再度見る
+                for (co, t, rec) in ranked_results:
+                    if rec == r:
+                        final_combined.append({"type": t, "data": r})
+                        break
+
+            combined = final_combined
+
+    return render_template('index.html', recipes=combined, ingredients=ingredients_input, category=category)
 
 
 @bp.route('/get_addRecipe', methods=['POST'])
@@ -66,40 +127,60 @@ def get_addRecipe():
     ingredients_input = request.form.get('ingredients', '')
     category = request.form.get('category', 'all')
     ingredients = jaconv.kata2hira(ingredients_input)
+
     query = AddRecipe.query
     if ingredients:
-        ingredient_filters = [Recipe.ingredients_hiragana.contains(ingredient) for ingredient in ingredients.split()]
-        # and検索
-        for filter_condition in ingredient_filters:
-            query = query.filter(filter_condition)
-        # or検索
-        # query = query.filter(or_(*ingredient_filters))
+        for ingredient in ingredients.split():
+            query = query.filter(AddRecipe.ingredients_hiragana.contains(ingredient))
 
     if category and category.lower() != "all":
         query = query.filter(AddRecipe.category == category.lower())
     recipes = query.all()
-    # レシピの数が少ない場合、MeCabで名詞を抽出して再検索
+
+    # レシピが3件未満ならMeCabで名詞抽出して段階的採用ロジック
     if len(recipes) < 3 and ingredients:
-        # MeCabで名詞を抽出
-        tagger = MeCab.Tagger('-Owakati')
-        parsed = tagger.parse(ingredients)
+        
+        tagger = MeCab.Tagger()
+        node = tagger.parseToNode(ingredients)
         nouns = []
-        for line in parsed.splitlines():
-            if line == 'EOS':
-                break
-            parts = line.split('\t')
-            if len(parts) > 3 and '名詞' in parts[3]:
-                nouns.append(parts[0])
-        # 名詞で再検索
+        while node:
+            features = node.feature.split(',')
+            # features[0]が品詞、'名詞'かどうかをチェック
+            if features[0] == '名詞':
+                nouns.append(node.surface)
+            node = node.next
+
         if nouns:
-            query = Recipe.query
-            noun_filters = [Recipe.ingredients_hiragana.contains(noun) for noun in nouns]
-            for filter_condition in noun_filters:
-                query = query.filter(filter_condition)
+            # nounsでOR検索
+            or_conditions = [Recipe.ingredients_hiragana.contains(n) for n in nouns]
+            or_query = Recipe.query.filter(or_(*or_conditions))
             if category and category.lower() != "all":
-                query = query.filter(Recipe.category == category.lower())
-            recipes = query.all()
-    
+                or_query = or_query.filter(Recipe.category == category.lower())
+            candidate_recipes = or_query.all()
+
+            # 一致数カウント
+            ranked_results = []
+            for r in candidate_recipes:
+                count = sum(n in r.ingredients_hiragana for n in nouns)
+                ranked_results.append((count, r))
+
+            ranked_results.sort(key=lambda x: x[0], reverse=True)
+
+            # 全部一致→(N-1)一致…と段階的にフィルタ
+            def filter_by_match_count(results, nouns_count):
+                filtered = []
+                for c in range(nouns_count, 0, -1):
+                    matched = [r for (co, r) in results if co == c]
+                    filtered += matched
+                    if len(filtered) >= 3:
+                        return filtered
+                if not filtered:
+                    filtered = [r for (co, r) in results if co > 0]
+                return filtered
+
+            chosen = filter_by_match_count(ranked_results, len(nouns))
+            recipes = chosen[:5]
+
     return render_template('index.html', recipes=recipes[:5], ingredients=ingredients_input, category=category)
 
 @bp.route('/recipes', methods=['GET'])
