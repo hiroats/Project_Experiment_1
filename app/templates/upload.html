@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新しいレシピ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload.css') }}">
+</head>
+<body>
+    <form action="/upload-recipe" method="post" enctype="multipart/form-data">
+        <h1>レシピを追加</h1>
+        <label for="title">レシピ名:</label>
+        <input type="text" name="title" required><br>
+        
+        <label for="ingredients">材料:</label>
+        <input type="text" name="ingredients" id="ingredients" required><br>
+        
+        <label for="recipe">手順:</label>
+        <input type="text" name="recipe"><br>
+
+        <label for="image">画像:</label>
+        <input type="file" name="image" required><br>
+
+        <label for="category">カテゴリー:</label>
+        <select id="category" name="category" required>
+            <option value="japanese" {% if category == 'japanese' %}selected{% endif %}>和食</option>
+            <option value="italian" {% if category == 'italian' %}selected{% endif %}>イタリアン</option>
+            <option value="chinese" {% if category == 'chinese' %}selected{% endif %}>中華</option>
+            <option value="korean" {% if category == 'korean' %}selected{% endif %}>韓国料理</option>
+            <option value="ethnic" {% if category == 'ethnic' %}selected{% endif %}>エスニック</option>
+            <option value="french" {% if category == 'french' %}selected{% endif %}>フレンチ</option>
+        </select>
+
+        <button type="button" onclick="predictCategory()">カテゴリを予測</button>
+        <div id="category_prediction"></div>
+        
+        <button type="submit">Upload Recipe</button>
+    </form>
+
+    <ul>
+        {% for recipe in recipes %}
+        <li>{{ recipe.title }} - {{ recipe.ingredients }}</li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        function predictCategory() {
+            const ingredients = document.getElementById('ingredients').value;
+
+            fetch('/predict_category', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ingredients: ingredients })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let output = "<h2>予測カテゴリ</h2><ul>";
+
+                // データが正しいかどうかを確認
+                if (data && data.error) {
+                    output += `<li>エラー: ${data.error}</li>`;
+                } else if (data && typeof data === 'object') {
+                    // 正常なデータの場合、カテゴリと確率を表示
+                    for (const [category, prob] of Object.entries(data)) {
+                        if (typeof prob === 'number') {
+                            output += `<li>${category}: ${prob.toFixed(2)}%</li>`;
+                        } else {
+                            output += `<li>${category}: 無効な確率</li>`;
+                        }
+                    }
+                } else {
+                    output += "<li>予測結果が無効です。</li>";
+                }
+
+                output += "</ul>";
+                document.getElementById('category_prediction').innerHTML = output;
+            })
+            .catch(error => console.error("エラー:", error));
+        }
+    </script>
+</body>
+</html>
