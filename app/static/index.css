@@ -1,0 +1,149 @@
+/* 全体のリセット */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 全体のスタイル */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* コンテナ */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ヘッダー */
+.container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #444;
+}
+
+/* フォーム */
+form {
+    margin-bottom: 20px;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+form input, form select, form button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #0056b3;
+}
+
+/* カテゴリ予測エリア */
+#category_prediction {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* レシピ結果 */
+#recipe-result h2 {
+    margin-top: 20px;
+    font-size: 20px;
+    color: #444;
+}
+
+#recipe-result ul {
+    list-style: none;
+    padding: 0;
+}
+
+#recipe-result li {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#recipe-result li h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #007BFF;
+}
+
+#recipe-result li p {
+    margin-bottom: 5px;
+}
+
+#recipe-result li a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+#recipe-result li a:hover {
+    text-decoration: underline;
+}
+
+#recipe-result li img {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+/* リンク */
+a {
+    display: inline-block;
+    margin-top: 15px;
+    font-size: 16px;
+    color: #007BFF;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+    }
+
+    form input, form select, form button {
+        font-size: 14px;
+    }
+
+    #recipe-result h2 {
+        font-size: 18px;
+    }
+}
